@@ -8,7 +8,11 @@ const Home = ({ sidebar }) => {
   
   return (
     <div className="home-container">
-      <Sidebar sidebar={sidebar} category={category} setCategory={setCategory} />
+      <Sidebar 
+        sidebar={sidebar} 
+        category={category} 
+        setCategory={setCategory} 
+      />
       
       <main className={`main-content ${sidebar ? 'sidebar-open' : 'sidebar-closed'}`}>
         <Feed category={category} />

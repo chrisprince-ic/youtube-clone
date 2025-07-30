@@ -8,12 +8,19 @@ import Video from './Pages/Video/Video'
 const App = () => {
   const [sidebar, setSidebar] = useState(true);
   
+  const handleSidebarToggle = () => {
+    setSidebar(prev => !prev);
+  };
+  
   return (
     <ThemeProvider>
       <div className="app">
-        <Navbar setSidebar={setSidebar} />
+        <Navbar setSidebar={handleSidebarToggle} />
         <Routes>
-          <Route path='/' element={<Home sidebar={sidebar} />} />
+          <Route 
+            path='/' 
+            element={<Home sidebar={sidebar} />}
+          />
           <Route path='/video/:categoryId/:videoId' element={<Video />} />
         </Routes>
       </div>

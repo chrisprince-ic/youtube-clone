@@ -3,7 +3,6 @@ import './Feed.css';
 import { Link } from 'react-router-dom';
 import { API_KEY, value_converter } from '../../data';
 import moment from 'moment';
-import { AnimatePresence } from 'framer-motion';
 import { Play, Eye, Clock, User, Image } from 'lucide-react';
 
 const Feed = ({ category }) => {
@@ -90,75 +89,73 @@ const Feed = ({ category }) => {
 
     return (
         <div className="feed">
-            <AnimatePresence mode="wait">
-                {data.map((item) => {
-                    const thumbnailUrl = getThumbnailUrl(item.snippet?.thumbnails);
-                    
-                    return (
-                        <div
-                            key={item.id}
-                            className="video-card-wrapper"
+            {data.map((item) => {
+                const thumbnailUrl = getThumbnailUrl(item.snippet?.thumbnails);
+                
+                return (
+                    <div
+                        key={item.id}
+                        className="video-card-wrapper"
+                    >
+                        <Link 
+                            to={`/video/${item.snippet?.categoryId || '0'}/${item.id}`} 
+                            className="video-card"
                         >
-                            <Link 
-                                to={`/video/${item.snippet?.categoryId || '0'}/${item.id}`} 
-                                className="video-card"
-                            >
-                                <div className="thumbnail-container">
-                                    {thumbnailUrl ? (
-                                        <img 
-                                            src={thumbnailUrl} 
-                                            alt={item.snippet?.title || 'Video thumbnail'}
-                                            className="thumbnail"
-                                            loading="lazy"
-                                            onError={(e) => {
-                                                e.target.style.display = 'none';
-                                                e.target.nextSibling.style.display = 'flex';
-                                            }}
-                                        />
-                                    ) : null}
-                                    <div className="thumbnail-fallback">
-                                        <Image size={40} />
-                                        <span>No thumbnail available</span>
-                                    </div>
-                                    <div className="thumbnail-overlay">
-                                        <Play size={20} />
-                                    </div>
-                                    <div className="video-duration">
-                                        {item.contentDetails?.duration ? 
-                                            moment.duration(item.contentDetails.duration).asMinutes().toFixed(0) + 'm' : 
-                                            'N/A'
-                                        }
-                                    </div>
+                            <div className="thumbnail-container">
+                                {thumbnailUrl ? (
+                                    <img 
+                                        src={thumbnailUrl} 
+                                        alt={item.snippet?.title || 'Video thumbnail'}
+                                        className="thumbnail"
+                                        loading="lazy"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'flex';
+                                        }}
+                                    />
+                                ) : null}
+                                <div className="thumbnail-fallback">
+                                    <Image size={40} />
+                                    <span>No thumbnail available</span>
+                                </div>
+                                <div className="thumbnail-overlay">
+                                    <Play size={20} />
+                                </div>
+                                <div className="video-duration">
+                                    {item.contentDetails?.duration ? 
+                                        moment.duration(item.contentDetails.duration).asMinutes().toFixed(0) + 'm' : 
+                                        'N/A'
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div className="video-info">
+                                <h3 className="video-title" title={item.snippet?.title || 'Untitled'}>
+                                    {item.snippet?.title || 'Untitled Video'}
+                                </h3>
+                                
+                                <div className="channel-info">
+                                    <User size={14} />
+                                    <span className="channel-name">
+                                        {item.snippet?.channelTitle || 'Unknown Channel'}
+                                    </span>
                                 </div>
                                 
-                                <div className="video-info">
-                                    <h3 className="video-title" title={item.snippet?.title || 'Untitled'}>
-                                        {item.snippet?.title || 'Untitled Video'}
-                                    </h3>
-                                    
-                                    <div className="channel-info">
-                                        <User size={14} />
-                                        <span className="channel-name">
-                                            {item.snippet?.channelTitle || 'Unknown Channel'}
-                                        </span>
+                                <div className="video-stats">
+                                    <div className="stat-item">
+                                        <Eye size={14} />
+                                        <span>{value_converter(item.statistics?.viewCount || "0")} views</span>
                                     </div>
-                                    
-                                    <div className="video-stats">
-                                        <div className="stat-item">
-                                            <Eye size={14} />
-                                            <span>{value_converter(item.statistics?.viewCount || "0")} views</span>
-                                        </div>
-                                        <div className="stat-item">
-                                            <Clock size={14} />
-                                            <span>{moment(item.snippet?.publishedAt).fromNow()}</span>
-                                        </div>
+                                    <div className="stat-item">
+                                        <Clock size={14} />
+                                        <span>{moment(item.snippet?.publishedAt).fromNow()}</span>
                                     </div>
                                 </div>
-                            </Link>
-                        </div>
-                    );
-                })}
-            </AnimatePresence>
+                            </div>
+                        </Link>
+                    </div>
+                );
+            })}
         </div>
     );
 };

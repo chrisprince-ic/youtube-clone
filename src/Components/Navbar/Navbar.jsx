@@ -19,6 +19,10 @@ const Navbar = ({ setSidebar }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
+  const handleMenuClick = () => {
+    setSidebar(prev => !prev);
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     // TODO: Implement search functionality
@@ -31,7 +35,7 @@ const Navbar = ({ setSidebar }) => {
         <div className="navbar-left">
           <button 
             className="menu-button"
-            onClick={() => setSidebar(prev => !prev)}
+            onClick={handleMenuClick}
             aria-label="Toggle sidebar"
           >
             <Menu size={24} />
