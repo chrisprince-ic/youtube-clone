@@ -1,129 +1,255 @@
 import React, { useState, useEffect } from 'react';
 import './PlayVideo.css';
-import like from '../../assets/like.png';
-import dislike from '../../assets/dislike.png';
-import share from '../../assets/share.png';
-import save from '../../assets/save.png';
-import jack from '../../assets/jack.png';
-import user_profile from '../../assets/user_profile.jpg';
 import { API_KEY, value_converter } from '../../data';
 import moment from 'moment';
+import { 
+  ThumbsUp, 
+  ThumbsDown, 
+  Share2, 
+  Download, 
+  MoreHorizontal,
+  User,
+  Clock,
+  Eye,
+  Heart,
+  MessageCircle
+} from 'lucide-react';
 
 const PlayVideo = ({ videoId }) => {
   const [apiData, setApiData] = useState(null);
-  const [channelData, setChannelData]= useState(null);
-
-
+  const [channelData, setChannelData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
 
   // Fetching video data
   const fetchVideoData = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      
       const videoDetails_url = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${API_KEY}`;
       const response = await fetch(videoDetails_url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.items && data.items.length > 0) {
         setApiData(data.items[0]);
       } else {
-        console.error("Video data not found");
+        throw new Error("Video not found");
       }
     } catch (error) {
       console.error("Error fetching video data:", error);
+      setError('Failed to load video. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  //Fetching channel data
-
-  const fetchOtherData = async ()=>{
-    const channelData_url =`https://youtube.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics&id=${apiData.snippet.channelId}&key=${API_KEY}`;
-    await fetch(channelData_url).then(res=>res.json()).then(data=>setChannelData(data.items[0]))
-
-    //fetching comment data
-    //
-  }
+  // Fetching channel data
+  const fetchChannelData = async () => {
+    if (!apiData?.snippet?.channelId) return;
+    
+    try {
+      const channelData_url = `https://youtube.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics&id=${apiData.snippet.channelId}&key=${API_KEY}`;
+      const response = await fetch(channelData_url);
+      const data = await response.json();
+      
+      if (data.items && data.items.length > 0) {
+        setChannelData(data.items[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching channel data:", error);
+    }
+  };
 
   useEffect(() => {
     if (videoId) {
       fetchVideoData();
     }
-  },); // Depend on videoId so it updates when the video changes
-  
+  }, [videoId]);
+
   useEffect(() => {
-    if (videoId) {
-      fetchOtherData();
+    if (apiData) {
+      fetchChannelData();
     }
-  },[apiData]); // Depend on videoId so it updates when the video changes
+  }, [apiData]);
 
-  
+  const handleLike = () => {
+    setLiked(!liked);
+    if (disliked) setDisliked(false);
+  };
 
+  const handleDislike = () => {
+    setDisliked(!disliked);
+    if (liked) setLiked(false);
+  };
+
+  const LoadingSkeleton = () => (
+    <div className="play-video skeleton">
+      <div className="video-player-skeleton"></div>
+      <div className="video-info-skeleton">
+        <div className="skeleton-title"></div>
+        <div className="skeleton-stats"></div>
+        <div className="skeleton-channel"></div>
+      </div>
+    </div>
+  );
+
+  const ErrorMessage = () => (
+    <div className="error-container">
+      <div className="error-content">
+        <h3>Video Not Available</h3>
+        <p>{error}</p>
+        <button onClick={fetchVideoData} className="retry-button">
+          Try Again
+        </button>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (error) {
+    return <ErrorMessage />;
+  }
+
+  if (!apiData) {
+    return <ErrorMessage />;
+  }
 
   return (
     <div className="play-video">
-      {/* Embedded YouTube Video */}
-      <iframe
-        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`}
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerPolicy="strict-origin-when-cross-origin"
-        allowFullScreen
-      ></iframe>
-
-      {/* Video Title */}
-      <h3>{apiData?.snippet?.title || "Title Not Available"}</h3>
+      {/* Video Player */}
+      <div className="video-player-container">
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0`}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+          className="video-player"
+          title={apiData.snippet?.title || "Video Player"}
+        />
+      </div>
 
       {/* Video Info */}
-      <div className="play-video-info">
-        <p>
-          {value_converter(apiData?.statistics?.viewCount || "0")} Views &bull;{" "}
-          {apiData?.snippet?.publishedAt ? moment(apiData.snippet.publishedAt).fromNow() : "Unknown Date"}
-        </p>
-        <div>
-          <span>
-            <img src={like} alt="Like" />
-            {apiData?.statistics?.likeCount ? value_converter(apiData.statistics.likeCount) : 144}
-          </span>
-          <span>
-            <img src={share} alt="Share" /> Share
-          </span>
-          <span>
-            <img src={save} alt="Save" /> Save
-          </span>
+      <div className="video-info">
+        <h1 className="video-title">{apiData.snippet?.title || "Title Not Available"}</h1>
+        
+        <div className="video-stats">
+          <div className="stats-left">
+            <div className="stat-item">
+              <Eye size={16} />
+              <span>{value_converter(apiData.statistics?.viewCount || "0")} views</span>
+            </div>
+            <div className="stat-item">
+              <Clock size={16} />
+              <span>{moment(apiData.snippet?.publishedAt).fromNow()}</span>
+            </div>
+          </div>
+          
+          <div className="stats-right">
+            <button 
+              className={`action-button ${liked ? 'active' : ''}`}
+              onClick={handleLike}
+            >
+              <ThumbsUp size={18} />
+              <span>{value_converter(apiData.statistics?.likeCount || "0")}</span>
+            </button>
+            
+            <button 
+              className={`action-button ${disliked ? 'active' : ''}`}
+              onClick={handleDislike}
+            >
+              <ThumbsDown size={18} />
+            </button>
+            
+            <button className="action-button">
+              <Share2 size={18} />
+              <span>Share</span>
+            </button>
+            
+            <button className="action-button">
+              <Download size={18} />
+              <span>Download</span>
+            </button>
+            
+            <button className="action-button">
+              <MoreHorizontal size={18} />
+            </button>
+          </div>
         </div>
       </div>
 
-      <hr />
-
-      {/* Publisher Info */}
-      <div className="publisher">
-        <img src={channelData?channelData.snippet.thumbnails.default.url:""} alt="Publisher" />
-        <div>
-          <p>{apiData?apiData.snippet.channelTitle:"Chrisss"}</p>
-          <span>{channelData? value_converter(channelData.statistics.subscriberCount):""}Subscribers</span>
+      {/* Channel Info */}
+      <div className="channel-section">
+        <div className="channel-info">
+          <div className="channel-avatar">
+            <img 
+              src={channelData?.snippet?.thumbnails?.default?.url || ''} 
+              alt={apiData.snippet?.channelTitle || "Channel"}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div className="avatar-fallback">
+              <User size={20} />
+            </div>
+          </div>
+          
+          <div className="channel-details">
+            <h3 className="channel-name">{apiData.snippet?.channelTitle || "Unknown Channel"}</h3>
+            <p className="subscriber-count">
+              {channelData?.statistics?.subscriberCount ? 
+                `${value_converter(channelData.statistics.subscriberCount)} subscribers` : 
+                "Subscriber count unavailable"
+              }
+            </p>
+          </div>
+          
+          <button className="subscribe-button">
+            Subscribe
+          </button>
         </div>
-        <button>Subscribe</button>
       </div>
 
       {/* Video Description */}
-      <div className="vid-description">
-        <p>{apiData?.snippet?.description.slice(0, 250) || "No description available."}</p>
-        <hr />
+      <div className="video-description">
+        <div className="description-header">
+          <h3>Description</h3>
+        </div>
+        <div className="description-content">
+          <p>{apiData.snippet?.description || "No description available."}</p>
+        </div>
+      </div>
 
-        {/* Comments Section */}
-        <h4>{apiData?value_converter(apiData.statistics.commentCount):102}comments</h4>
-        <div className="comment">
-          <img src={user_profile} alt="User Profile" />
-          <div>
-            <h3>Jack Nick <span>1 day ago</span></h3>
-            <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugit iure eveniet asperiores mollitia libero voluptate facere suscipit, autem eligendi recusandae veniam adipisci optio debitis dolores architecto itaque explicabo nobis beatae.
-            </p>
-            <div className="comment-action">
-              <img src={like} alt="Like" />
-              <span>244</span>
-              <img src={dislike} alt="Dislike" />
-              <span>2</span>
-            </div>
+      {/* Comments Section */}
+      <div className="comments-section">
+        <div className="comments-header">
+          <h3>Comments</h3>
+          <span className="comment-count">0 comments</span>
+        </div>
+        <div className="comment-input">
+          <div className="comment-avatar">
+            <User size={20} />
           </div>
+          <input 
+            type="text" 
+            placeholder="Add a comment..." 
+            className="comment-text-input"
+          />
+        </div>
+        <div className="comments-list">
+          <p className="no-comments">No comments yet. Be the first to comment!</p>
         </div>
       </div>
     </div>

@@ -1,11 +1,86 @@
-.container{
-    background-color: #fff;
-    padding-left: 17%; 
-    padding-right: 2%;
-    padding-top: 20px;
-    padding-bottom: 20px;
+.home-container {
+  display: flex;
+  min-height: calc(100vh - 64px);
+  background-color: var(--bg-primary);
 }
 
-.large-container{
-    padding-left: 7%;
+.main-content {
+  flex: 1;
+  margin-left: 240px;
+  transition: margin-left var(--transition-normal);
+  background-color: var(--bg-primary);
+  min-height: calc(100vh - 64px);
+}
+
+.main-content.sidebar-closed {
+  margin-left: 72px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .main-content.sidebar-open {
+    margin-left: 0;
+  }
+  
+  .main-content.sidebar-closed {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    margin-top: 0;
+  }
+}
+
+/* Loading state */
+.main-content.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Smooth transitions for theme changes */
+.main-content {
+  transition: 
+    margin-left var(--transition-normal),
+    background-color var(--transition-normal),
+    color var(--transition-normal);
+}
+
+/* Focus management for accessibility */
+.main-content:focus {
+  outline: none;
+}
+
+/* Scroll behavior */
+.main-content {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar for main content */
+.main-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }

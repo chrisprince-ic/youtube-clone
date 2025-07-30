@@ -3,16 +3,17 @@ import './Home.css'
 import Sidebar from '../../Components/Sidebar/Sidebar'
 import Feed from '../../Components/Feed/Feed'
 
-const Home = ({sidebar}) => {
+const Home = ({ sidebar }) => {
   const [category, setCategory] = useState(0);
+  
   return (
-    <>
-      <Sidebar  sidebar={sidebar} category={category} setCategory={setCategory}/>
+    <div className="home-container">
+      <Sidebar sidebar={sidebar} category={category} setCategory={setCategory} />
       
-      <div className={`container ${sidebar?"":"large-container"}`}>
-        <Feed category={category}/>
-      </div>
-    </>
+      <main className={`main-content ${sidebar ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <Feed category={category} />
+      </main>
+    </div>
   )
 }
 
